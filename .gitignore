@@ -1,0 +1,22 @@
+# Dépendances
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environnement / secrets
+.env
+.env.*
+*.local
+
+# Fichiers temporaires Newman
+newman/*.json
+newman/newman-run-report-*
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

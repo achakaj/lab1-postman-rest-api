@@ -1,0 +1,748 @@
+{
+  "info": {
+    "name": "Lab 1 - API REST avec Postman (DummyJSON)",
+    "description": "Lab 1 : Conception et test d'une API REST avec HTTP et Postman. API de démo : https://dummyjson.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - GET",
+      "item": [
+        {
+          "name": "Liste des produits",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: products est un tableau non vide\", function () { pm.expect(json.products).to.be.an(\"array\").that.is.not.empty; });",
+                  "pm.test(\"Body: total, skip, limit présents\", function () { pm.expect(json).to.include.keys(\"total\", \"skip\", \"limit\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ]
+            },
+            "description": "Récupère la liste paginée par défaut (30 produits)."
+          }
+        },
+        {
+          "name": "Produit par id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: id correspond à productId\", function () { pm.expect(json.id).to.eql(parseInt(pm.environment.get(\"productId\"))); });",
+                  "pm.test(\"Body: champs title et price\", function () { pm.expect(json).to.have.property(\"title\"); pm.expect(json.price).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Récupère un produit par son identifiant."
+          }
+        },
+        {
+          "name": "Recherche (q=phone)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: résultats trouvés\", function () { pm.expect(json.products).to.be.an(\"array\").that.is.not.empty; pm.expect(json.total).to.be.above(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/search?q=phone",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "phone"
+                }
+              ]
+            },
+            "description": "Recherche plein texte de produits contenant « phone »."
+          }
+        },
+        {
+          "name": "Pagination (limit, skip, select)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: limit=5 et skip=10\", function () { pm.expect(json.products).to.have.lengthOf(5); pm.expect(json.limit).to.eql(5); pm.expect(json.skip).to.eql(10); });",
+                  "pm.test(\"Body: seuls id, title, price sont renvoyés\", function () { json.products.forEach(p => pm.expect(p).to.have.all.keys(\"id\", \"title\", \"price\")); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?limit=5&skip=10&select=title,price",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                },
+                {
+                  "key": "skip",
+                  "value": "10"
+                },
+                {
+                  "key": "select",
+                  "value": "title,price"
+                }
+              ]
+            },
+            "description": "Pagination avec limit/skip et projection des champs avec select."
+          }
+        },
+        {
+          "name": "Tri (sortBy, order)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: prix triés par ordre croissant\", function () { const prices = json.products.map(p => p.price); pm.expect(prices).to.eql([...prices].sort((a, b) => a - b)); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products?sortBy=price&order=asc&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "sortBy",
+                  "value": "price"
+                },
+                {
+                  "key": "order",
+                  "value": "asc"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Tri des produits par prix croissant."
+          }
+        },
+        {
+          "name": "Liste des catégories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: tableau non vide d'objets catégorie\", function () { pm.expect(json).to.be.an(\"array\").that.is.not.empty; pm.expect(json[0]).to.include.keys(\"slug\", \"name\", \"url\"); });",
+                  "pm.test(\"Body: smartphones existe\", function () { pm.expect(json.map(c => c.slug)).to.include(\"smartphones\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "categories"
+              ]
+            },
+            "description": "Liste de toutes les catégories (objets slug/name/url)."
+          }
+        },
+        {
+          "name": "Produits de la catégorie smartphones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: tous les produits sont des smartphones\", function () { pm.expect(json.products).to.be.an(\"array\").that.is.not.empty; json.products.forEach(p => pm.expect(p.category).to.eql(\"smartphones\")); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/category/smartphones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "category",
+                "smartphones"
+              ]
+            },
+            "description": "Produits de la catégorie smartphones."
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - POST",
+      "item": [
+        {
+          "name": "Ajout d'un produit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: title renvoyé et id généré\", function () { pm.expect(json.title).to.eql(\"Lab1 Produit Test\"); pm.expect(json.id).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "add"
+              ]
+            },
+            "description": "Simule l'ajout d'un produit (non persisté côté serveur). Renvoie 201 avec un nouvel id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lab1 Produit Test\",\n  \"price\": 99.9,\n  \"category\": \"smartphones\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ajout d'un utilisateur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 201\", function () { pm.response.to.have.status(201); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: firstName, lastName, age renvoyés\", function () { pm.expect(json.firstName).to.eql(\"Abdellah\"); pm.expect(json.lastName).to.eql(\"Achakaj\"); pm.expect(json.age).to.eql(25); });",
+                  "pm.test(\"Body: id généré\", function () { pm.expect(json.id).to.be.a(\"number\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/add",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "add"
+              ]
+            },
+            "description": "Simule l'ajout d'un utilisateur. Renvoie 201 avec un nouvel id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Abdellah\",\n  \"lastName\": \"Achakaj\",\n  \"age\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - PUT vs PATCH",
+      "item": [
+        {
+          "name": "PUT - remplacement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: title mis à jour\", function () { pm.expect(json.title).to.eql(\"Produit remplacé (PUT)\"); });",
+                  "pm.test(\"Body: id conservé\", function () { pm.expect(json.id).to.eql(parseInt(pm.environment.get(\"productId\"))); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "PUT = remplacement COMPLET de la ressource : le client envoie la représentation entière ; les champs omis sont censés être écrasés/supprimés. Idempotent.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Produit remplacé (PUT)\",\n  \"price\": 150,\n  \"category\": \"smartphones\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH - modification partielle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: price mis à jour\", function () { pm.expect(json.price).to.eql(79.5); });",
+                  "pm.test(\"Body: les autres champs sont conservés\", function () { pm.expect(json).to.have.property(\"title\"); pm.expect(json.title).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "PATCH = modification PARTIELLE : seuls les champs envoyés sont modifiés, les autres restent inchangés (ici seul le prix). Différence avec PUT : PUT remplace tout, PATCH ne touche que ce qui est envoyé.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 79.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - DELETE",
+      "item": [
+        {
+          "name": "Suppression d'un produit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: isDeleted est true\", function () { pm.expect(json.isDeleted).to.be.true; });",
+                  "pm.test(\"Body: deletedOn est une date ISO valide\", function () { pm.expect(json.deletedOn).to.be.a(\"string\"); pm.expect(new Date(json.deletedOn).toString()).to.not.eql(\"Invalid Date\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "description": "Supprime (simulation) le produit. La réponse contient isDeleted=true et deletedOn."
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Chaînage",
+      "item": [
+        {
+          "name": "Login (stocke accessToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: accessToken présent\", function () { pm.expect(json.accessToken).to.be.a(\"string\").and.not.empty; });",
+                  "pm.test(\"Body: username correct\", function () { pm.expect(json.username).to.eql(pm.environment.get(\"username\")); });",
+                  "pm.environment.set(\"accessToken\", json.accessToken);",
+                  "pm.environment.set(\"userId\", json.id);",
+                  "pm.test(\"accessToken stocké dans l'environnement\", function () { pm.expect(pm.environment.get(\"accessToken\")).to.eql(json.accessToken); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authentification ; le accessToken est stocké dans l'environnement via pm.environment.set pour la requête suivante.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"expiresInMins\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Profil connecté (Bearer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 200\", function () { pm.response.to.have.status(200); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: profil de l'utilisateur connecté\", function () { pm.expect(json.username).to.eql(pm.environment.get(\"username\")); pm.expect(json).to.include.keys(\"id\", \"email\", \"firstName\", \"lastName\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Utilise le token via l'en-tête Authorization: Bearer {{accessToken}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Erreurs",
+      "item": [
+        {
+          "name": "404 - Produit inexistant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 404\", function () { pm.response.to.have.status(404); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: message contient « not found »\", function () { pm.expect(json.message).to.include(\"not found\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/products/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "products",
+                "999999"
+              ]
+            },
+            "description": "Produit inexistant : 404 attendu avec un message d'erreur."
+          }
+        },
+        {
+          "name": "400 - Login mauvais mot de passe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 400\", function () { pm.response.to.have.status(400); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: message Invalid credentials\", function () { pm.expect(json.message).to.eql(\"Invalid credentials\"); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Mauvais mot de passe : 400 attendu (Invalid credentials).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"emilys\",\n  \"password\": \"mauvais-mot-de-passe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "401 - /auth/me sans token",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// DummyJSON pose un cookie accessToken au login ; Newman le renverrait automatiquement.",
+                  "// On écrase l'en-tête Cookie pour appeler VRAIMENT sans token."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Statut 401\", function () { pm.response.to.have.status(401); });",
+                  "pm.test(\"Content-Type est JSON\", function () { pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\"); });",
+                  "pm.test(\"Temps de réponse < 500 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(500); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Body: message d'erreur présent\", function () { pm.expect(json.message).to.be.a(\"string\").and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "accessToken=; refreshToken="
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Appel sans en-tête Authorization : 401 attendu."
+          }
+        }
+      ]
+    }
+  ]
+}
